@@ -1,12 +1,13 @@
 import { REST, Routes } from 'discord.js';
-import { importCommand } from './loaders/loadCommands.js'
-import * as tokenJSON from '../config.json' assert { type: 'json' };
+import { importCommand } from './loaders/CommandLoader.js'
+import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs/promises';
 
-const token = tokenJSON.default.token;
-const clientId = tokenJSON.default.clientId;
-const GuildId = tokenJSON.default.guildId;
+dotenv.config();
+const token = process.env.BOT_TOKEN as string;
+const clientId = process.env.BOT_CLIENT_ID as string;
+const GuildId = process.env.GUILD_ID as string;
 
 
 

@@ -20,16 +20,17 @@ export async function importCommand(filePath) {
     }
 }
 
+/**
+ * @param {import('discord.js').Client} client - The Discord client object.
+ */
 export async function loadCommands(client) {
-    
 
     const foldersPath = path.join(__dirname, '../commands');
     const commandFolders = await fs.readdir(foldersPath);
-
+    
     for (const folder of commandFolders) {
         const commandsPath = path.join(foldersPath, folder);
         const commandFiles = (await fs.readdir(commandsPath)).filter(file => file.endsWith('.js'));
-        console.log(commandFiles);
         for (const file of commandFiles) {
             const filePath = path.join(commandsPath, file);
             const commandModule = await importCommand(filePath);
@@ -38,6 +39,7 @@ export async function loadCommands(client) {
             }
         }
     }
+
 
     const watcher = chokidar.watch(foldersPath);
 
