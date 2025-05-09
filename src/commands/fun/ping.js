@@ -4,7 +4,7 @@ import { setTimeout } from "node:timers/promises";
 
 export const command = new SlashCommandBuilder()
     .setName('ping')
-    .setDescription('Play some ping pong');
+    .setDescription('Replies with Pong!');
 
 export async function execute(interaction) {
     await interaction.deferReply();

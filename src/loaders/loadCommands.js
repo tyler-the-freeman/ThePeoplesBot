@@ -58,7 +58,7 @@ export async function loadCommands(client) {
                         client.commands.set(commandName, updatedCommandModule);
                         console.log(`Added new command: ${commandName}`);
                     }
-                    // await deployComands();
+                    await deployComands();
                 }
             } catch (error) {
                 console.error(`Error updating/adding command from ${filePath}: ${error.message}`);

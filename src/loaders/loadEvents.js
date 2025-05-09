@@ -46,9 +46,9 @@ export async function eventListener(client) {
                     if (updatedEventModule.event) {
                         const eventName = updatedEventModule.event.name;
                         if (updatedEventModule.event.once) {
-                            client.once(eventName, (...args) => eventModule.execute(...args));
+                            client.once(eventName, (...args) => updatedEventModule.execute(...args));
                         } else {
-                            client.on(eventName, (...args) => eventModule.execute(...args));
+                            client.on(eventName, (...args) => updatedEventModule.execute(...args));
                         }
                         console.log(`Added new ${(updatedEventModule.event.once) ? 'once' : 'on'} event listener: ${eventName}`);
                     }

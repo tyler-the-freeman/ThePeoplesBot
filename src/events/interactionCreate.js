@@ -5,10 +5,10 @@ export const event = {
 }
 
 export async function execute(interaction) {
-    if (!interaction.isChatInputCommand()){
-        console.log('Command Interaction Recieved: ' + interaction);
-        return;
-    } 
+    // if (!interaction.isChatInputCommand()){
+    //     console.log('Command Interaction Recieved: ' + interaction);
+    //     return;
+    // } 
 
     const command = interaction.client.commands.get(interaction.commandName);
 
