@@ -1,6 +1,5 @@
-import { SlashCommandBuilder} from 'discord.js';
+import { SlashCommandBuilder, MessageFlags } from 'discord.js';
 import { AudioPlayerService } from '../../services/AudioPlayerService.js';
-import { content } from 'googleapis/build/src/apis/content/index.js';
 
 export const command = new SlashCommandBuilder()
     .setName('skip')
@@ -14,7 +13,7 @@ export async function execute(interaction) {
         if (result.success) {
             await interaction.reply(result.message);
         } else {
-            await interaction.reply({ content: result.message, ephemeral: true });
+            await interaction.reply({ content: result.message, flags: MessageFlags.Ephemeral });
         }
     } catch (error) {
         console.error(`Error executing command: ${error}`);

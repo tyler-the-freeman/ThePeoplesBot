@@ -2,10 +2,32 @@ import ytdl from "@distube/ytdl-core";
 import fs from "fs";
 import { url } from "inspector";
 
-const info = await ytdl.getInfo("https://www.youtube.com/watch?v=VQRLujxTm3c&list=PLrV33OeSoDfXCvtNlexK9WuBEQzfL0L8M", {
-   filter: 'audioonly',
+function parseCookieString(cookieStr) {
+  return cookieStr.split('; ').map(pair => {
+    const [name, value] = pair.split('=');
+    return { name, value };
+  });
+}
+
+const agentOptions = {
+   pipelining: 5,
+   maxRedirections: 0
+}
+
+const cookieStr = "VISITOR_INFO1_LIVE=KouKlaaRsnY; VISITOR_PRIVACY_METADATA=CgJVUxIEGgAgPg%3D%3D; VISITOR_INFO1_LIVE=hwhZFFu0Jgk; VISITOR_PRIVACY_METADATA=CgJVUxIEGgAgYg%3D%3D; YTV_CLC=locsrc=1&locs=2&tz=America%2FChicago; HSID=AeT2zy0-gZAMjxn5U; SSID=A4e7xJL5rsLPGNrPm; APISID=5boEI_zUtOz45Id5/A8Z1TohBPHtSc3DUs; SAPISID=jPvrQYLj0M3xVmMY/ARL4-vzedHIenZWn7; __Secure-1PAPISID=jPvrQYLj0M3xVmMY/ARL4-vzedHIenZWn7; __Secure-3PAPISID=jPvrQYLj0M3xVmMY/ARL4-vzedHIenZWn7; SID=g.a000wwhOOWOb03fm6rLM55rIi03751SMOdhCkvZag7pBbqxNQGUao3zWCdDmAGP27r3HM45nTgACgYKAdASARQSFQHGX2MimtD8bDf2RnMkKT4OYk6UZxoVAUF8yKqG6wXb8tO2J1Rm1eqcf0Yt0076; __Secure-1PSID=g.a000wwhOOWOb03fm6rLM55rIi03751SMOdhCkvZag7pBbqxNQGUaHEod7btcE_uzxQ9wPXyY_AACgYKAQsSARQSFQHGX2MiSgGaHGumfqXNTpu9i78GJhoVAUF8yKpIy1HvctYSJzgKECQAS_y40076; __Secure-3PSID=g.a000wwhOOWOb03fm6rLM55rIi03751SMOdhCkvZag7pBbqxNQGUa1QuSOXwtfZckmNzkqvpZLgACgYKAQkSARQSFQHGX2MiUnN0x72EhlnXJhV8mNvcLRoVAUF8yKo16NONEwl9QAOf5qbfDvJO0076; YSC=sLQStdwwgVM; LOGIN_INFO=AFmmF2swRQIgduqkFfocR4EsFbH52sqSJlVn-_-IDxfaoaxLz34RGe0CIQDD9qKZXAPW34BoBsWj4Z0OFviNOw8qvH46tbiMpN7Q4w:QUQ3MjNmenVzWFY1a0RFUjlROUlabmM0SFljb1JoaGo1SEVlUURXMTR3WExqUEtOY0k1bjBON1ljX0NUMTkzcFVOTDhjc3BpLWt4bjEtcU9OMGZiWXBuRlJGaXgtZDdvdEVmSTFVN0xyVm5OZ0JIdHBydDlLaHVnTm90ZVRVQTRYcVZndHVlVzhMQTZxS3Exd09EMmJQVjk5bGtzXzg4MXI1bGFWSF9fT1hKaGpTamVtN2pjbF8xVnV2M2pMRDR3ZjRnNFJZNW5aRUNuYzA0TGFwS29PS0pTNHduNXJjZndEdw==; YSC=1GhEACpP_-0; wide=1; __Secure-ROLLOUT_TOKEN=CJaH6pCPwKi2aRDe74zjhu2KAxj725SL3riNAw%3D%3D; NID=524=bAYkY1l9I-OIOlJpqVVXyxy_JT0xHdW_TP8YOq9FoNt--n0HXYTzEwX7DHXe8owzkdqtC1KTaWqmIqSm9nQEqBW2R7-8qs--NqxxrPUk7CR0qRTuPzyLUXaObrcBt-j8e_u9yhdCfh7c6fQX_xpNWCK7Y3c3fLUkojfGPmKDHSuPNRDN14JLc36RvA; __Secure-1PSIDTS=sidts-CjEBjplskMzKPkSewfeYcgir9IKwr57ZLErPKWf-QBSF_g7zl1mC3FBIWYQTRzokBGnYEAA; __Secure-3PSIDTS=sidts-CjEBjplskMzKPkSewfeYcgir9IKwr57ZLErPKWf-QBSF_g7zl1mC3FBIWYQTRzokBGnYEAA; PREF=f6=40000080&f7=100&tz=America.Chicago&f4=4010000; SIDCC=AKEyXzUL8qcfEo79-GKLTOJM71UCStmt9_hluSHtZVfRcm69fhXNiay9eDV7ZY048399v27kGDA; __Secure-1PSIDCC=AKEyXzVHXlpfLU-8bHklbWWbPHnLHDlf35zIYezMASLvrVY0cflmcQqvwiODlnBrfKcVDgYQqT8; __Secure-3PSIDCC=AKEyXzWXun8q1l2qjIW_8BtfBdGpTQxXmyfi9WEwRp9tG1bNPrCMF4MESgb6eB-dGESApNVHElTK"
+const cookies = [{"domain":".youtube.com","expirationDate":1748305765.665944,"hostOnly":false,"httpOnly":true,"name":"GPS","path":"/","sameSite":"unspecified","secure":true,"session":false,"storeId":"1","value":"1"},{"domain":".youtube.com","expirationDate":1779840014.28708,"hostOnly":false,"httpOnly":true,"name":"__Secure-1PSIDTS","path":"/","sameSite":"unspecified","secure":true,"session":false,"storeId":"1","value":"sidts-CjIBjplskGhh0mWsP0AkbKPrIHC4ATqoDyIbRrtDaFszNi9xPvbBsRJ_Nh7Rip2EkhKQBRAA"},{"domain":".youtube.com","expirationDate":1779840014.287153,"hostOnly":false,"httpOnly":true,"name":"__Secure-3PSIDTS","path":"/","sameSite":"no_restriction","secure":true,"session":false,"storeId":"1","value":"sidts-CjIBjplskGhh0mWsP0AkbKPrIHC4ATqoDyIbRrtDaFszNi9xPvbBsRJ_Nh7Rip2EkhKQBRAA"},{"domain":".youtube.com","expirationDate":1782864014.287179,"hostOnly":false,"httpOnly":true,"name":"HSID","path":"/","sameSite":"unspecified","secure":false,"session":false,"storeId":"1","value":"AiigMk2iig047b5rV"},{"domain":".youtube.com","expirationDate":1782864014.287197,"hostOnly":false,"httpOnly":true,"name":"SSID","path":"/","sameSite":"unspecified","secure":true,"session":false,"storeId":"1","value":"AVWbqfcjOq01dttiD"},{"domain":".youtube.com","expirationDate":1782864014.287213,"hostOnly":false,"httpOnly":false,"name":"APISID","path":"/","sameSite":"unspecified","secure":false,"session":false,"storeId":"1","value":"qzWInzUXhz56PrrA/Am-hDoW73EPTOrCzQ"},{"domain":".youtube.com","expirationDate":1782864014.287234,"hostOnly":false,"httpOnly":false,"name":"SAPISID","path":"/","sameSite":"unspecified","secure":true,"session":false,"storeId":"1","value":"q-mNWSFeSrkFFeV2/AK8uYXlOnzeefgqaA"},{"domain":".youtube.com","expirationDate":1782864014.287254,"hostOnly":false,"httpOnly":false,"name":"__Secure-1PAPISID","path":"/","sameSite":"unspecified","secure":true,"session":false,"storeId":"1","value":"q-mNWSFeSrkFFeV2/AK8uYXlOnzeefgqaA"},{"domain":".youtube.com","expirationDate":1782864014.287274,"hostOnly":false,"httpOnly":false,"name":"__Secure-3PAPISID","path":"/","sameSite":"no_restriction","secure":true,"session":false,"storeId":"1","value":"q-mNWSFeSrkFFeV2/AK8uYXlOnzeefgqaA"},{"domain":".youtube.com","expirationDate":1782864014.287294,"hostOnly":false,"httpOnly":false,"name":"SID","path":"/","sameSite":"unspecified","secure":false,"session":false,"storeId":"1","value":"g.a000xQhOObzsqlYOFMJy9NrKu41islVDAmfiwPenNHl3RZVyFlPDshYP9Bo_mZe4raQvXwD3igACgYKAeYSARQSFQHGX2Mi5eOGcGJR7Z8mcq3ulkY6_xoVAUF8yKpQ6aQ7FIMCJk-34uRCYaFe0076"},{"domain":".youtube.com","expirationDate":1782864014.287317,"hostOnly":false,"httpOnly":true,"name":"__Secure-1PSID","path":"/","sameSite":"unspecified","secure":true,"session":false,"storeId":"1","value":"g.a000xQhOObzsqlYOFMJy9NrKu41islVDAmfiwPenNHl3RZVyFlPDnIrRVwL3ZhipGjPgT82kXQACgYKAfwSARQSFQHGX2MiMcEmmgJSlu3SXIlCwlO_RBoVAUF8yKpznEn-egZPtRmadKEFjJRo0076"},{"domain":".youtube.com","expirationDate":1782864014.287339,"hostOnly":false,"httpOnly":true,"name":"__Secure-3PSID","path":"/","sameSite":"no_restriction","secure":true,"session":false,"storeId":"1","value":"g.a000xQhOObzsqlYOFMJy9NrKu41islVDAmfiwPenNHl3RZVyFlPDevkqQOqrum-gYIjBp8JZOwACgYKAR8SARQSFQHGX2MiCXQ0yOoKigXw-kzG3qv5WhoVAUF8yKo7xzWDxQc4OhmSU98X-V4s0076"},{"domain":".youtube.com","expirationDate":1782864018.460242,"hostOnly":false,"httpOnly":false,"name":"PREF","path":"/","sameSite":"unspecified","secure":true,"session":false,"storeId":"1","value":"f6=40000080&tz=America.Chicago&f4=4000000"},{"domain":".youtube.com","expirationDate":1782864016.382754,"hostOnly":false,"httpOnly":true,"name":"LOGIN_INFO","path":"/","sameSite":"no_restriction","secure":true,"session":false,"storeId":"1","value":"AFmmF2swRQIhAPuKUFHaaek29pXgsEBkMWWsrVJpxA174hBCr1-0HpCyAiAKzAUJR0NW0AkDYbRpyQ7jarBh9VnzfQYEY9sgoC3apw:QUQ3MjNmenhkY2pmc0UtVkNJMndFMWxmRnBCbjhvMmxRRmpuWTBPLWo3djhpaUlISXBlekluUFQ0N2NxXzVoYmlMN0lEcjZXOGZsSTVVVVlneFNKU2pPaElZaUxBcGhJZ0lwM3A3X1ItZW1abEFQRTVZbk52UHFjODNWVDJVZUptZUhDRmFIUU9jdnZqU2hpdEEyblMxLTFYa09yVENfcE83X29mZ2QtajJnRmhTRlJ3MkhoeWpxOUZVYW4xQ3NTZzVKbkJnRmRQLVE3dVRFTE5QWEdYWE11ZklBNXFEc05FZw=="},{"domain":".youtube.com","expirationDate":1779840037.768878,"hostOnly":false,"httpOnly":false,"name":"SIDCC","path":"/","sameSite":"unspecified","secure":false,"session":false,"storeId":"1","value":"AKEyXzVHxs6ev1YBVJwSleUx71OXgUYFm17wREym3eyJu_xNyKUtMwB3Be2BpF0Bx9B5sv1Cpw"},{"domain":".youtube.com","expirationDate":1779840037.768952,"hostOnly":false,"httpOnly":true,"name":"__Secure-1PSIDCC","path":"/","sameSite":"unspecified","secure":true,"session":false,"storeId":"1","value":"AKEyXzXYuuK6nzq8_6B8q23UzCnYt5YhqE92ofFE9tiSSr6lRamR1bUqGvJQchskBdLaRgFe"},{"domain":".youtube.com","expirationDate":1779840037.768971,"hostOnly":false,"httpOnly":true,"name":"__Secure-3PSIDCC","path":"/","sameSite":"no_restriction","secure":true,"session":false,"storeId":"1","value":"AKEyXzUTRSl9JM10r0zJSh11s0N9z-n9C8m5aZxNNEZpDG7mRyT4oo6o-kc7X5r_uljcUS7ftg"},{"domain":".youtube.com","hostOnly":false,"httpOnly":true,"name":"YSC","partitionKey":{"hasCrossSiteAncestor":false,"topLevelSite":"https://youtube.com"},"path":"/","sameSite":"no_restriction","secure":true,"session":true,"storeId":"1","value":"MBCj44DMWOw"},{"domain":".youtube.com","expirationDate":1763856017.059732,"hostOnly":false,"httpOnly":true,"name":"VISITOR_INFO1_LIVE","partitionKey":{"hasCrossSiteAncestor":false,"topLevelSite":"https://youtube.com"},"path":"/","sameSite":"no_restriction","secure":true,"session":false,"storeId":"1","value":"zT2Eg70GfFc"},{"domain":".youtube.com","expirationDate":1763856017.059776,"hostOnly":false,"httpOnly":true,"name":"VISITOR_PRIVACY_METADATA","partitionKey":{"hasCrossSiteAncestor":false,"topLevelSite":"https://youtube.com"},"path":"/","sameSite":"no_restriction","secure":true,"session":false,"storeId":"1","value":"CgJVUxIEGgAgGw%3D%3D"},{"domain":".youtube.com","expirationDate":1763855966.170861,"hostOnly":false,"httpOnly":true,"name":"__Secure-ROLLOUT_TOKEN","partitionKey":{"hasCrossSiteAncestor":false,"topLevelSite":"https://youtube.com"},"path":"/","sameSite":"no_restriction","secure":true,"session":false,"storeId":"1","value":"CK7a_tyi-p-Z8QEQybDp5KvCjQMYvqaI5avCjQM%3D"}]
+
+//console.log(cookies);
+
+const agent = ytdl.createAgent(cookies, agentOptions);
+
+const info = await ytdl.getInfo("https://www.youtube.com/watch?v=bw3MLbgceto", {agent});
+const download = ytdl.downloadFromInfo(info, {
+   //filter: 'audioonly',
    //quality: 'highestaudio',
-})
+   // highWaterMark: 1024 * 1024 * 64, // Increased buffer size
+   agent: agent
+}).pipe(fs.createWriteStream("test3.mp4"));
 
 
 // ytdl("https://www.youtube.com/watch?v=VQRLujxTm3c&list=PLrV33OeSoDfXCvtNlexK9WuBEQzfL0L8M", {
@@ -15,14 +37,6 @@ const info = await ytdl.getInfo("https://www.youtube.com/watch?v=VQRLujxTm3c&lis
 //             dlChunkSize: 65536 * 2 * 2
 // });
 
-// console.log(info)
+//console.log(info)
 
-info.formats.forEach((format) => {
-      console.log({
-         mimeType: format.mimeType,
-         audioQuality: format.audioQuality,
-   })  
-   }
-);
-
-ytdl(url, {f})
+console.log(download);

@@ -5,6 +5,7 @@ export const event = {
 }
 let socialCredit = {};
 
+
 export async function execute(triggerMessage) {
     try {
         // Skip processing messages from bots
@@ -31,15 +32,15 @@ export async function execute(triggerMessage) {
     }
         
         // User ID: 189940657740185601 - house check
-        if (userId === '189940657740185601') {
-            socialCredit[triggerMessage.author.globalName] = (socialCredit[triggerMessage.author.globalName] || 2) - 1;
-            await triggerMessage.reply('^^^ Has a small penis.\nSocial Credit Reduced for ' + triggerMessage.author.globalName + '\nSocial Credit Remaining: ' + socialCredit[triggerMessage.author.globalName]);
+        // if (userId === '189940657740185601') {
+        //     socialCredit[triggerMessage.author.globalName] = (socialCredit[triggerMessage.author.globalName] || 2) - 1;
+        //     await triggerMessage.reply('^^^ Has a small penis.\nSocial Credit Reduced for ' + triggerMessage.author.globalName + '\nSocial Credit Remaining: ' + socialCredit[triggerMessage.author.globalName]);
             
-            if (socialCredit[triggerMessage.author.globalName] <= 0) {
-                await triggerMessage.reply('No Social Credit Remaining. Gulag.');
-                await triggerMessage.member.voice.setChannel('1134283087925231657');
-            }
-        }
+        //     if (socialCredit[triggerMessage.author.globalName] <= 0) {
+        //         await triggerMessage.reply('No Social Credit Remaining. Gulag.');
+        //         await triggerMessage.member.voice.setChannel('1134283087925231657');
+        //     }
+        // }
         
         // User ID: 188187909218631680 - gun check
         if (userId === '188187909218631680' && messageContent.includes('gun')) {
@@ -62,4 +63,4 @@ export async function execute(triggerMessage) {
     } catch (error) {
         console.error(`Message Create Event Error: ${error}`);
     }
-}
+} 

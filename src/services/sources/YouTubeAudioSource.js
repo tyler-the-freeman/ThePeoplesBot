@@ -5,13 +5,8 @@ import 'dotenv/config';
 export class YouTubeAudioSource {
     #url;
     #youtube;
+    #agent;
 
-    #dlOptions = {
-        filter: 'audioonly',
-        quality: 'highestaudio',
-        highWaterMark: 1024 * 1024 * 32, // 32MB
-        dlChunkSize: 262144 // 256KB
-    }
 
     constructor(url) {
         this.#url = url;
@@ -19,6 +14,13 @@ export class YouTubeAudioSource {
             version: 'v3',
             auth: process.env.YOUTUBE_API_KEY
         });
+
+        const agentOptions = {
+            pipelining: 5,
+            maxRedirections: 5
+        };
+
+        //this.#agent = ytdl.createAgent(cookies, agentOptions);
     }
 
     // Checks if the URL has 'list' parameter
@@ -29,16 +31,28 @@ export class YouTubeAudioSource {
 
     // createStream 
     async getTrack() {
-        const info = await ytdl.getBasicInfo(this.#url);
+        const agent = this.#agent;
+
+        const info = await ytdl.getBasicInfo(this.#url, { agent });
+        //const infoFull = await ytdl.getInfo(this.#url, { agent });
+        // let format = ytdl.chooseFormat(infoFull.formats, {
+        //     quality: 'highestaudio',
+        //     agent: agent,
+        // });
+
+        
+
         const track = {
             title: info.videoDetails.title,
             url: this.#url,
             createStream: async () => {
+                //console.log("Creating Stream with Agent: ", agent);
                 const stream = ytdl(this.#url, {
                     //filter: 'audioonly',
                     quality: 'highestaudio',
-                    highWaterMark: 1024 * 32,
-                    //dlChunkSize: 1024 * 32,
+                    highWaterMark: 1024 * 1024 * 64, // Increased buffer size
+                    dlChunkSize: 1024 * 1024,
+                    //agent: agent,
                 });
                 return stream;
             }
@@ -68,8 +82,9 @@ export class YouTubeAudioSource {
                             const stream = ytdl(videoUrl, {
                                 //filter: 'audioonly',
                                 quality: 'highestaudio',
-                                highWaterMark: 1024 * 2,
-                                //dlChunkSize: 1024 * 32,
+                                highWaterMark: 1024 * 1024 * 64, // Increased buffer size
+                                dlChunkSize: 1024 * 1024,
+                                //agent: this.#agent,
                             });
 
                             return stream;
