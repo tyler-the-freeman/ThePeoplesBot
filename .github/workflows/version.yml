@@ -18,5 +18,3 @@ jobs:
           git add VERSION
           git commit -m "Release Version ${{ github.run_number }}"
           git push origin release/${{ github.run_number }}
-
-      - 
