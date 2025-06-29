@@ -10,7 +10,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: thepeoplesbot
+  IMAGE_NAME: tfpeoplesbot
 
 permissions:
   contents: read
