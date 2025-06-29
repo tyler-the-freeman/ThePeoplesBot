@@ -6,7 +6,8 @@ import fs from 'fs/promises';
 
 const token = tokenJSON.default.token;
 const clientId = tokenJSON.default.clientId;
-const GuildId = tokenJSON.default.guildId;
+//const GuildId = tokenJSON.default.guildId;
+const guildIds = tokenJSON.default.guildIds;
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
@@ -31,10 +32,14 @@ export async function deployComands(){
 
     try{
         console.log(`Started refreshing ${commands.length} application (/) commands:\t${commands.map(command => command.name)}`);
-        const data = await rest.put(
-            Routes.applicationGuildCommands(clientId, GuildId),
-            { body: commands }
-        );
+        const deploymentPromises = [];
+        for (const guildId of guildIds) {
+            const data = rest.put(
+                Routes.applicationGuildCommands(clientId, guildId),
+                { body: commands }
+            );
+        }
+        await Promise.all(deploymentPromises);
 
         console.log(`Successfully reloaded ${commands.length} application (/) commands.`);
         

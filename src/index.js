@@ -5,6 +5,8 @@ import { loadCommands } from './loaders/loadCommands.js';
 import { Client, Collection, Events, GatewayIntentBits } from 'discord.js';
 import { eventListener } from './loaders/loadEvents.js';
 
+process.env.NODE_DEBUG = 'http,http2,net';
+
 // Sets bot token
 const token = tokenJSON.default.token;
 
@@ -19,6 +21,7 @@ let clientIntents = [
 
 const client = new Client({ intents: clientIntents });
 client.commands = new Collection();
+
 
 await loadCommands(client); // Import commands from the commands folder
 await eventListener(client); // Append event listeners from events folder to client.listeners array. Note client intents
