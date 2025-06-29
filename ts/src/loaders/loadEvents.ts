@@ -1,10 +1,11 @@
 import path from 'path';
 import fs from 'fs/promises';
 import chokidar from 'chokidar';
+import { CommandEnabledClient } from '../interfaces/ExtendedClient.js';
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
-async function importEvent(filePath) {
+async function importEvent(filePath: string) {
     try {
         const module = await import(filePath);
         if (module.event) { // Check for the 'event' property
@@ -14,16 +15,13 @@ async function importEvent(filePath) {
             console.log(`[WARNING] The event at ${filePath} is missing an 'event' property.`);
             return null;
         }
-    } catch (error) {
+    } catch (error: any) {
         console.error(`Error importing event from ${filePath}: ${error.message}`);
         return null;
     }
 }
 
-/**
- * @param {import('discord.js').Client} client - The Discord client object.
- */
-export async function eventListener(client) {
+export async function eventListener(client: CommandEnabledClient){
     const eventsPath = path.join(__dirname, '../events');
     const eventFiles = (await fs.readdir(eventsPath)).filter(file => file.endsWith('.js'));
     for (const file of eventFiles) {
@@ -46,14 +44,14 @@ export async function eventListener(client) {
                     if (updatedEventModule.event) {
                         const eventName = updatedEventModule.event.name;
                         if (updatedEventModule.event.once) {
-                            client.once(eventName, (...args) => eventModule.execute(...args));
+                            client.once(eventName, (...args) => updatedEventModule.execute(...args));
                         } else {
-                            client.on(eventName, (...args) => eventModule.execute(...args));
+                            client.on(eventName, (...args) => updatedEventModule.execute(...args));
                         }
                         console.log(`Added new ${(updatedEventModule.event.once) ? 'once' : 'on'} event listener: ${eventName}`);
                     }
                 }
-            catch (error) {
+            catch (error: any) {
                 console.error(`Error updating/adding command from ${filePath}: ${error.message}`);
             }
         }

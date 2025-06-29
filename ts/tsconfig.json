@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+      "outDir": "./built",
+      "target": "ES2022",
+      "module": "NodeNext",
+      "strict": true,
+      "esModuleInterop": true,
+    },
+    "include": ["./ts/src/**/*"]
+}
