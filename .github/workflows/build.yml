@@ -44,12 +44,12 @@ jobs:
           echo "Version: ${{ steps.meta.outputs.version }}"
           echo "Tags: ${{ steps.meta.outputs.tags }}"
           
-      - name: Build and Push Docker Image
-        uses: docker/build-push-action@v4
-        with: 
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
+      # - name: Build and Push Docker Image
+      #   uses: docker/build-push-action@v4
+      #   with: 
+      #     context: .
+      #     push: true
+      #     tags: ${{ steps.meta.outputs.tags }}
         
 
 
