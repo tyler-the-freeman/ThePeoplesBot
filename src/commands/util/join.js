@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, ChannelType } from "discord.js";
+import { SlashCommandBuilder, ChannelType, MessageFlags } from "discord.js";
 import { joinVoiceChannel } from "@discordjs/voice";
 
 export const command = new SlashCommandBuilder()
@@ -21,5 +21,6 @@ export async function execute(interaction) {
         await interaction.reply(`Joined ${channel.name}`);
     } catch (error) {
         console.error(`Error Joining Voice Channel: ${error}`);
+        await interaction.reply({content: `Failed to join voice channel. Does the bot know what channel to join?`, flags: MessageFlags.Ephemeral});
     }
 }
