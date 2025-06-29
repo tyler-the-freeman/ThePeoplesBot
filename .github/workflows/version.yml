@@ -1,0 +1,22 @@
+name: Create Versioned Release Branch
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create Release
+        run: |
+          git checkout develop
+          git checkout -b release/${{ github.run_number}}
+          echo ${{ github.run_number }} > VERSION
+          git add VERSION
+          git commit -m "Release Version ${{ github.run_number }}"
+          git push origin release/${{ github.run_number }}
+
+      - 
