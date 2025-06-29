@@ -136,3 +136,4 @@ client_secret.json
 .env
 
 src/*.mp3
+src/test.js
