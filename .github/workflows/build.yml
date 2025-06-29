@@ -2,10 +2,7 @@ name: Build
 
 on:
   push:
-    branches:
-      - main
-    tags:
-      - 'v*'
+    branches: [ '*' ]
   workflow_dispatch:
 
 env:
@@ -37,7 +34,8 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=sha
+            type=sha,prefix=,suffix=
+            type=ref,prefix=,suffix=,event=branch
 
       - name: Test Metadata
         run: |
@@ -50,6 +48,6 @@ jobs:
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
-        
-
-
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
