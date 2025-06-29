@@ -1,20 +1,45 @@
-name: Create Release Branch
+name: Create Release
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - release/*
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   release:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
-      - name: Create Release
-        run: |
-          git checkout develop
-          git checkout -b release/${{ github.run_number}}
-          echo ${{ github.run_number }} > VERSION
-          git add VERSION
-          git commit -m "Release Version ${{ github.run_number }}"
-          git push origin release/${{ github.run_number }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Version from Branch
+        id: version
+        run: echo "VERSION=$(echo ${{ github.ref }} | sed 's|refs/heads/release/||')" >> $GITHUB_OUTPUT
+          
+
+      - name: Build and Push Versioned Docker Image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.VERSION }}
+
+      
+    
