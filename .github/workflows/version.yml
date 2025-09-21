@@ -1,11 +1,13 @@
-name: Create Versioned Release Branch
+name: Create Tag for Release
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main
 
 permissions:
   contents: write
-  
+ 
 jobs:
   version:
     runs-on: ubuntu-latest
@@ -20,6 +22,6 @@ jobs:
 
       - name: Create Release
         run: |
-          git checkout develop
-          git checkout -b release/${{ github.run_number}}
-          git push origin release/${{ github.run_number }}
+          git tag v${{ github.run_number }}
+          git push origin --tags
+          
