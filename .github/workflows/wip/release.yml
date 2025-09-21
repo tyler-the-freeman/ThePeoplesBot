@@ -2,9 +2,8 @@ name: Create Release
 
 on:
   push:
-    branches:
-      - release/*
-
+    tags:
+      - 'v*'
 permissions:
   contents: write
   packages: write
@@ -32,10 +31,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract Version from Branch
+      - name: Extract Version from Tag
         id: version
-        run: echo "VERSION=$(echo ${{ github.ref }} | sed 's|refs/heads/release/||')" >> $GITHUB_OUTPUT
-          
+        run: echo "VERSION=$(echo ${{ github.ref }} | sed 's|refs/tags/||')" >> $GITHUB_OUTPUT
+
 
       - name: Build and Push Versioned Docker Image
         uses: docker/build-push-action@v4
