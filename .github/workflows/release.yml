@@ -3,7 +3,7 @@ name: Create Release
 on:
   push:
     tags:
-      - v*
+      - v**
 permissions:
   contents: write
   packages: write
@@ -39,6 +39,7 @@ jobs:
           tags: |
             type=sha,prefix=,suffix=
             type=ref,prefix=,suffix=,event=tag
+            type=ref,prefix=,suffix=,event=branch
 
       - name: Build and Push Versioned Docker Image
         uses: docker/build-push-action@v4
