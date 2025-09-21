@@ -2,7 +2,7 @@ name: Build
 
 on:
   push:
-    branches: [ '*' ]
+    branches: [ 'test', 'feature/*' ]
   workflow_dispatch:
 
 env:
