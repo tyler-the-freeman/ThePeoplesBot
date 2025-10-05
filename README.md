@@ -27,7 +27,7 @@ Google Cloud API Key with access to the YouTube Data API v3
     {
     "token": "",
     "clientId": "",
-    "guildIds": []
+    "guildIds": [""]
     }
    ```
 6. Start the bot
