@@ -278,7 +278,7 @@ export class AudioPlayerService {
             if (error.message == 'Status code: 403'){
                 await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for 1s before retrying
                 try {
-                    console.log('Retrying to play track after 403 error...');
+                    console.log('Retrying track after 403 error...');
                     await this.#playTrack(guildId, this.#queues.get(guildId)[0], commandChannel);
                 }  catch (retryError) {
                     commandChannel.send(`There was an error playing the audio data. Skipping track. Error: ${retryError.message}`);
@@ -306,6 +306,8 @@ export class AudioPlayerService {
             if (this.#queues.get(guildId).length > 0) {
                 const nextTrack = this.#queues.get(guildId)[0];
                 await this.#playTrack(guildId, nextTrack, commandChannel); //play the "new" first track
+            } else {
+                this.#players.delete(guildId);   
             }
         });
 
@@ -347,10 +349,11 @@ export class AudioPlayerService {
             inlineVolume: true,
             silencePaddingFrames: 5
         });
+
         resource.volume.setVolume(0.5); // Set volume to 50%
         const player = this.#players.get(guildId);
         player.play(resource);
-        //await interaction.editReply(`Now playing: \n${track.title}`);
+        
         if (interaction) {
             await interaction.editReply(`Now playing: \n${track.title}`);
         } else {
