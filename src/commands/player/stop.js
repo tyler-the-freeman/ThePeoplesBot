@@ -3,7 +3,7 @@ import { getVoiceConnection } from "@discordjs/voice";
 
 export const command = new SlashCommandBuilder()
     .setName('stop')
-    .setDescription('Stops any audio currently playing in the voice channel.');
+    .setDescription('Stops any audio currently playing in the voice channel. Does not clear the queue.');
 
 export async function execute(interaction) {
 

@@ -59,48 +59,9 @@ export class AudioPlayerService {
             adapterCreator: channel.guild.voiceAdapterCreator
         });
 
-        const player = createAudioPlayer();
-
-        player.on('error', async (error) => {
-            console.error(error);
-            if (error.message == 'Status code: 403'){
-                await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for 1s before retrying
-                try {
-                    console.log('Retrying to play track after 403 error...');
-                    await this.#playTrack(guildId, this.#queues.get(guildId)[0], commandChannel);
-                }  catch (retryError) {
-                    commandChannel.send(`There was an error playing the audio data. Skipping track. Error: ${retryError.message}`);
-                    if (this.#queues.get(guildId).length > 1) {
-                        this.#queues.get(guildId).shift();
-                        const nextTrack = this.#queues.get(guildId)[0];
-                        await this.#playTrack(guildId, nextTrack, commandChannel);
-                    }
-                }
-            } else {
-                commandChannel.send(`There was an error playing the audio data. Skipping track. Error: ${error.message}`);
-                if (this.#queues.get(guildId).length > 1) {
-                    this.#queues.get(guildId).shift();
-                    const nextTrack = this.#queues.get(guildId)[0];
-                    await this.#playTrack(guildId, nextTrack, commandChannel);
-                }
-            }
-        });
-
-        // Handles moving to the next track in the queue
-        player.on('idle', async () => {
-            console.log('Player is idle, moving to the next track...');
-            if (this.#queues.get(guildId).length > 0) {
-                this.#queues.get(guildId).shift(); //Remove the first track from the queue
-            }
-            if (this.#queues.get(guildId).length > 0) {
-                const nextTrack = this.#queues.get(guildId)[0];
-                await this.#playTrack(guildId, nextTrack, commandChannel); //play the "new" first track
-            }
-        });
+        const player = await this.#createAudioPlayer(interaction);
 
         this.#connections.set(guildId, connection);
-        this.#players.set(guildId, player);
-
         if (!this.#queues.has(guildId)) {
             this.#queues.set(guildId, []);
         }
@@ -182,7 +143,7 @@ export class AudioPlayerService {
         const guildId = interaction.guild.id;
         const connection = this.#connections.get(guildId);
 
-        this.clearQueue(guildId); // Always clear the queue when stopping
+        //this.clearQueue(interaction); // Always clear the queue when stopping
 
         if (connection) {
             connection.destroy();
@@ -198,13 +159,21 @@ export class AudioPlayerService {
         const guildId = interaction.guild.id;
         const player = this.#players.get(guildId);
         const channel = interaction.member.voice.channel;
+        const commandChannel = interaction.guild.channels.cache.get(interaction.channelId);
 
         if (!channel) {
             return { success: false, message:  'You need to be in a voice channel to start playback.'};
         }
 
+        if (!this.#queues.has(guildId) || this.#queues.get(guildId).length === 0) {
+            return { success: false, message: 'The queue is empty. Use another command to add tracks to the queue.'};
+        }
+
         if (!player) {
-            await this.#createAudioPlayer(interaction);   
+            console.log('No Player')
+            await this.#createAudioPlayer(interaction);
+            await this.#playTrack(guildId, commandChannel, this.#queues.get(guildId)[0], interaction);
+            await this.startPlayer(interaction); // we do a little recursion
         }
 
         const connection = joinVoiceChannel({
@@ -213,13 +182,26 @@ export class AudioPlayerService {
             adapterCreator: channel.guild.voiceAdapterCreator
         });
 
-        
-
         connection.subscribe(player);
         
-        await this.#playTrack(guildId, this.#queues.get(guildId)[0], interaction);
-        return { success: true, message: 'Audio player started.'};
+        if (player.state.status === 'paused') {
+            player.unpause();
+        }
+
+        return { success: true, message: 'Audio player started.' };
     }
+
+    async pause(interaction) {
+        const guildId = interaction.guild.id;
+        const player = this.#players.get(guildId);
+
+        if (!player || player.state.status !== 'playing') {
+            return { success: false, message: 'No audio is currently playing.' };
+        }
+        player.pause();
+        return { success: true, message: 'Paused the audio player.' };
+    }
+
 
     async playLocalFile(interaction) {
         const guildId = interaction.guild.id;
@@ -241,28 +223,26 @@ export class AudioPlayerService {
             
             this.#connections.set(guildId, connection);
         }
+
+        const player = createAudioPlayer({
+            behaviors: {
+                noSubscriber: NoSubscriberBehavior.Play
+            }
+        });
+    
+        player.on('error', error => {
+            console.error(`Player error: ${error.message}`);
+            interaction.followUp('Balatro is kill\nno');
+        });
         
-        // Create player if needed
-        if (!this.#players.has(guildId)) {
-            const player = createAudioPlayer({
-                behaviors: {
-                    noSubscriber: NoSubscriberBehavior.Play
-                }
-            });
-            
-            player.on('error', error => {
-                console.error(`Player error: ${error.message}`);
-                interaction.followUp('Balatro is kill\nno');
-            });
-            
-            player.on('idle', () => {
-                console.log('Local file playback finished');
-                interaction.followUp('Local file playback complete');
-            });
-            
-            this.#players.set(guildId, player);
-            this.#connections.get(guildId).subscribe(player);
-        }
+        player.on('idle', () => {
+            console.log('Local file playback finished');
+            interaction.followUp('Local file playback complete');
+        });
+        
+        //this.#players.set(guildId, player);
+        this.#connections.get(guildId).subscribe(player);
+    
         
         try {
             // Create a resource from the local file
@@ -272,7 +252,7 @@ export class AudioPlayerService {
             });
             
             resource.volume.setVolume(0.5);
-            const player = this.#players.get(guildId);
+            //const player = this.#players.get(guildId);
             player.play(resource);
             
             await interaction.editReply(`Playing Balatro - Complete Original Soundtrack (Official)`);
@@ -289,34 +269,48 @@ export class AudioPlayerService {
 
         const player = createAudioPlayer({
             behaviors: {
-                noSubscriber: NoSubscriberBehavior.Play
+                noSubscriber: NoSubscriberBehavior.Pause
             }
         });
 
-        player.on('error', error => {
-            commandChannel.send(`There was an error playing the audio data. Disconnecting...`);
-            console.error(`Error: ${error.message}`);
-            connection.destroy();
+        player.on('error', async (error) => {
+            console.error(error);
+            if (error.message == 'Status code: 403'){
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for 1s before retrying
+                try {
+                    console.log('Retrying to play track after 403 error...');
+                    await this.#playTrack(guildId, this.#queues.get(guildId)[0], commandChannel);
+                }  catch (retryError) {
+                    commandChannel.send(`There was an error playing the audio data. Skipping track. Error: ${retryError.message}`);
+                    if (this.#queues.get(guildId).length > 1) {
+                        this.#queues.get(guildId).shift();
+                        const nextTrack = this.#queues.get(guildId)[0];
+                        await this.#playTrack(guildId, nextTrack, commandChannel);
+                    }
+                }
+            } else {
+                commandChannel.send(`There was an error playing the audio data. Skipping track. Error: ${error.message}`);
+                if (this.#queues.get(guildId).length > 1) {
+                    this.#queues.get(guildId).shift();
+                    const nextTrack = this.#queues.get(guildId)[0];
+                    await this.#playTrack(guildId, nextTrack, commandChannel);
+                }
+            }
         });
-
         // Handles moving to the next track in the queue or disconnecting
         player.on('idle', async () => {
-            //console.log('Player is idle, moving to the next track...');
+            console.log('Player is idle, moving to the next track...');
             if (this.#queues.get(guildId).length > 0) {
-                this.#queues.get(guildId).shift(); // Remove the first track from the queue
+                this.#queues.get(guildId).shift(); //Remove the first track from the queue
             }
             if (this.#queues.get(guildId).length > 0) {
                 const nextTrack = this.#queues.get(guildId)[0];
-                await this.#playTrack(guildId, nextTrack, commandChannel);
-            } else {
-                // interaction.followUp('Finished playlist. Disconnecting...');
-                // connection.destroy();
+                await this.#playTrack(guildId, nextTrack, commandChannel); //play the "new" first track
             }
-            // interaction.followUp('Finished playing audio. Disconnecting...');
-            // connection.destroy();
         });
 
         this.#players.set(guildId, player);
+        return player;
     }
 
 
