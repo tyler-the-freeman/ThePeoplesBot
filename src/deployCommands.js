@@ -6,7 +6,6 @@ import fs from 'fs/promises';
 
 const token = tokenJSON.default.token;
 const clientId = tokenJSON.default.clientId;
-//const GuildId = tokenJSON.default.guildId;
 const guildIds = tokenJSON.default.guildIds;
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
@@ -46,25 +45,6 @@ export async function deployComands(){
     } catch (error) {
         console.error(error);
     }
-
-    // (async () => {
-    //     try{
-    //         console.log(`Started refreshing ${commands.length} application (/) commands.`);
-    //         console.log(commands);
-    //         const data = await rest.put(
-    //             Routes.applicationGuildCommands(clientId, GuildId),
-    //             { body: commands }
-    //         );
-
-    //         console.log(`Successfully reloaded ${commands.length} application (/) commands.`);
-    //     } catch (error) {
-    //         console.error(error);
-    //     }
-    // })();
 }
-
-// if (require.main === module) {
-//     deployComands();
-// }
 
 await deployComands();

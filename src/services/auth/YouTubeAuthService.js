@@ -4,7 +4,7 @@ import { google } from 'googleapis';
 import crypto from 'crypto';
 import * as OAuthClientInfo from '../../../client_secret.json' with { type: 'json' };
 
-
+// Failed attempt at interactive OAuth2 authentication
 
 const scopes = [
     'https://www.googleapis.com/auth/youtube.readonly',

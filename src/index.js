@@ -5,9 +5,8 @@ import { loadCommands } from './loaders/loadCommands.js';
 import { Client, Collection, Events, GatewayIntentBits } from 'discord.js';
 import { eventListener } from './loaders/loadEvents.js';
 
-process.env.NODE_DEBUG = 'http,http2,net';
+//process.env.NODE_DEBUG = 'http,http2,net';
 
-// Sets bot token
 const token = tokenJSON.default.token;
 
 let clientIntents = [

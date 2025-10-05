@@ -1,12 +1,12 @@
 import ytdl from "@distube/ytdl-core";
 import { google } from "googleapis";
 import 'dotenv/config';
+import { Innertube, UniversalCache, Utils } from 'youtubei.js';
 
 export class YouTubeAudioSource {
     #url;
     #youtube;
-    #agent;
-
+    #innertube;
 
     constructor(url) {
         this.#url = url;
@@ -14,16 +14,9 @@ export class YouTubeAudioSource {
             version: 'v3',
             auth: process.env.YOUTUBE_API_KEY
         });
-
-        const agentOptions = {
-            pipelining: 5,
-            maxRedirections: 5
-        };
-
-        //this.#agent = ytdl.createAgent(cookies, agentOptions);
+        this.#innertube = Innertube.create({ cache: new UniversalCache(false), generate_session_locally: true, player_id: '0004de42' });
     }
 
-    // Checks if the URL has 'list' parameter
     async isPlaylist() {
         return this.#url.includes('list');
     }
@@ -31,36 +24,21 @@ export class YouTubeAudioSource {
 
     // createStream 
     async getTrack() {
-        const agent = this.#agent;
+        const info = await ytdl.getBasicInfo(this.#url);
+        const yt = await this.#innertube;
 
-        const info = await ytdl.getBasicInfo(this.#url, { agent });
-        //const infoFull = await ytdl.getInfo(this.#url, { agent });
-        // let format = ytdl.chooseFormat(infoFull.formats, {
-        //     quality: 'highestaudio',
-        //     agent: agent,
-        // });
-
-        
-
+        const streamingData = await yt.getStreamingData(info.videoDetails.videoId, { format: 'mp4a', quality: 'best' });
         const track = {
             title: info.videoDetails.title,
             url: this.#url,
             createStream: async () => {
-                //console.log("Creating Stream with Agent: ", agent);
-                const stream = ytdl(this.#url, {
-                    //filter: 'audioonly',
-                    quality: 'highestaudio',
-                    highWaterMark: 1024 * 1024 * 64, // Increased buffer size
-                    dlChunkSize: 1024 * 1024,
-                    //agent: agent,
-                });
-                return stream;
+                const response = await fetch(streamingData.url);
+                return response.body;
             }
         }
         console.log(track.title, track.url);
         return track;
     }
-
 
     async getPlaylistTracks() {
         const playlistId = this.#url.split('list=')[1].split('&')[0];
@@ -75,21 +53,20 @@ export class YouTubeAudioSource {
                 for (const item of items) {
                     const videoId = item.snippet.resourceId.videoId;
                     const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+                    const yt = await this.#innertube;
+                    const streamingData = await yt.getStreamingData(videoId, {
+                        format: 'mp4a',
+                        quality: 'best',
+                    });
+
                     let track = {
                         title: item.snippet.title,
                         url: videoUrl,
                         createStream: async () => {
-                            const stream = ytdl(videoUrl, {
-                                //filter: 'audioonly',
-                                quality: 'highestaudio',
-                                highWaterMark: 1024 * 1024 * 64, // Increased buffer size
-                                dlChunkSize: 1024 * 1024,
-                                //agent: this.#agent,
-                            });
-
-                            return stream;
+                            const response = await fetch(streamingData.url);
+                            return response.body;
                         }
-                    };
+                    }
                     tracks.push(track);
                 }
             return tracks;

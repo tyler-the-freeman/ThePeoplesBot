@@ -52,14 +52,6 @@ export async function execute(triggerMessage) {
                 await triggerMessage.member.voice.setChannel('1134283087925231657');
             }
         }
-        
-        // Testing block
-        // if (userId === '159110406219104256') {
-        //     let user = await triggerMessage.guild.members.fetch('159110406219104256');
-        //     console.log(triggerMessage);
-        //     // console.log(user.user);
-        //     console.log(await triggerMessage.reply(triggerMessage)); // Fixed typo: replay → reply
-        // }
     } catch (error) {
         console.error(`Message Create Event Error: ${error}`);
     }
