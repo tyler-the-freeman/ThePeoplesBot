@@ -14,7 +14,10 @@ export class YouTubeAudioSource {
             version: 'v3',
             auth: process.env.YOUTUBE_API_KEY
         });
-        this.#innertube = Innertube.create({ cache: new UniversalCache(false), generate_session_locally: true, player_id: '0004de42' });
+        this.#innertube = Innertube.create({ 
+            cache: new UniversalCache(true, './tmp/youtubei_cache'),
+            generate_session_locally: true,
+        });
     }
 
     async isPlaylist() {
@@ -27,7 +30,7 @@ export class YouTubeAudioSource {
         const info = await ytdl.getBasicInfo(this.#url);
         const yt = await this.#innertube;
 
-        const streamingData = await yt.getStreamingData(info.videoDetails.videoId, { format: 'mp4a', quality: 'best' });
+        const streamingData = await yt.getStreamingData(info.videoDetails.videoId)//, { format: 'mp4a', quality: 'best' });
         const track = {
             title: info.videoDetails.title,
             url: this.#url,

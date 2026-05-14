@@ -4,9 +4,8 @@ import * as tokenJSON from '../config.json' with { type: 'json' };
 import { loadCommands } from './loaders/loadCommands.js';
 import { Client, Collection, Events, GatewayIntentBits } from 'discord.js';
 import { eventListener } from './loaders/loadEvents.js';
-
-//process.env.NODE_DEBUG = 'http,http2,net';
-
+import { Platform } from 'youtubei.js';
+        
 const token = tokenJSON.default.token;
 
 let clientIntents = [
@@ -26,3 +25,4 @@ await loadCommands(client); // Import commands from the commands folder
 await eventListener(client); // Append event listeners from events folder to client.listeners array. Note client intents
 
 client.login(token);
+
